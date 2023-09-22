@@ -6,11 +6,13 @@ from PIL import Image
 import pyautogui
 import pystray
 
+from util import resource_path
+
 # Constants
 pyautogui.PAUSE = 5
 KEY = 'f20'
-ICON_ENABLED = Image.open('enabled.png')
-ICON_DISABLED = Image.open('disabled.png')
+ICON_ENABLED = Image.open(resource_path('assets/enabled.png'))
+ICON_DISABLED = Image.open(resource_path('assets/disabled.png'))
 
 
 def main():
