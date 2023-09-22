@@ -21,5 +21,5 @@ The output is a single executable built for your current platform.
 This program is entirely system tray-based. A single click on the icon toggles between enabled and disabled. To exit, right click and select exit.
 
 ## TODO
-- Make key pressed and interval configurable
-- Add cross-platform support (Windows only currently)
+- Add type hints
+- Allow configuration from systray

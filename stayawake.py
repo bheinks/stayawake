@@ -1,75 +1,85 @@
-from functools import partial
 from threading import Thread, Event
-from time import sleep
 
-from PIL import Image
 import pyautogui
 import pystray
-
-from util import resource_path
+from PIL import Image
+from util import resource_path, start_file, read_toml
 
 # Constants
-pyautogui.PAUSE = 5
-KEY = 'f20'
 ICON_ENABLED = Image.open(resource_path('assets/enabled.png'))
 ICON_DISABLED = Image.open(resource_path('assets/disabled.png'))
+CONFIG_PATH = resource_path('config.toml')
+KEY_DEFAULT = 'f24'
+INTERVAL_DEFAULT = 5
 
 
-def main():
-    running = Event()
-    running.set()
+class StayAwake:
+    def __init__(self):
+        self.key = KEY_DEFAULT
+        self.interval = INTERVAL_DEFAULT
+        self.exit = Event()
+        self.disabled = Event()
+        self.press_thread = Thread(target=self.press_loop)
+        self.icon = self.build_icon()
+    
+    def start(self):
+        self.load_config()
+        self.press_thread.start()
+        self.icon.run()
 
-    enabled = Event()
-    enabled.set()
+    def stop(self):
+        self.exit.set()
+        self.icon.stop()
 
-    press_thread = Thread(target=press_loop, args=(running, enabled))
-    press_thread.start()
+    def build_icon(self):
+        default_item = pystray.MenuItem(
+            'Enabled',
+            self.toggle_enabled,
+            checked=lambda _: not self.disabled.is_set(),
+            default=True,
+        )
 
-    icon = build_icon(running, enabled)
-    icon.run()
+        edit_item = pystray.MenuItem(
+            'Edit configuration',
+            self.edit_config
+        )
 
+        stop_item = pystray.MenuItem(
+            'Exit',
+            self.stop
+        )
 
-def build_icon(running, enabled):
-    default_item = pystray.MenuItem(
-        'Enabled',
-        partial(toggle_enabled, enabled),
-        checked=lambda _: enabled.is_set(),
-        default=True,
-    )
+        return pystray.Icon(
+            'stayawake',
+            ICON_ENABLED,
+            menu=pystray.Menu(default_item, edit_item, stop_item)
+        )
 
-    stop_item = pystray.MenuItem(
-        'Exit',
-        partial(stop, running)
-    )
+    def edit_config(self):
+        start_file(CONFIG_PATH)
+        self.load_config()
+    
+    def load_config(self):
+        config = read_toml(CONFIG_PATH)
+        self.key = config.get('key', KEY_DEFAULT)
+        self.interval = config.get('interval', INTERVAL_DEFAULT)
 
-    return pystray.Icon(
-        'stayawake',
-        ICON_ENABLED,
-        menu=pystray.Menu(default_item, stop_item)
-    )
-
-
-def toggle_enabled(enabled, icon, _):
-    if enabled.is_set():
-        enabled.clear()
-        icon.icon = ICON_DISABLED
-    else:
-        enabled.set()
-        icon.icon = ICON_ENABLED
-
-
-def stop(running, icon, _):
-    running.clear()
-    icon.stop()
-
-
-def press_loop(running, enabled):
-    while running.is_set():
-        if enabled.is_set():
-            pyautogui.press(KEY)
+    def toggle_enabled(self):
+        if self.disabled.is_set():
+            self.disabled.clear()
+            self.icon.icon = ICON_ENABLED
         else:
-            sleep(pyautogui.PAUSE)
+            self.disabled.set()
+            self.icon.icon = ICON_DISABLED
+
+    def press_loop(self):
+        while not self.exit.is_set():
+            if not self.disabled.is_set():
+                pyautogui.press(self.key)
+
+            self.exit.wait(self.interval)
 
 
 if __name__ == '__main__':
-    main()
+    stayawake = StayAwake()
+    stayawake.start()
