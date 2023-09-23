@@ -22,4 +22,4 @@ This program is entirely system tray-based. A single click on the icon toggles b
 
 ## TODO
 - Add type hints
-- Allow configuration from systray
+- Save configured key and interval
