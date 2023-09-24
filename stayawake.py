@@ -1,15 +1,14 @@
-from functools import partial
 from threading import Thread, Event
 
 import pyautogui
 import pystray
 from PIL import Image
-from util import resource_path, start_file, read_toml
+from util import resource_path, read_json, write_json
 
 # Constants
 ICON_ENABLED = Image.open(resource_path('assets/enabled.png'))
 ICON_DISABLED = Image.open(resource_path('assets/disabled.png'))
-CONFIG_PATH = resource_path('config.toml')
+CONFIG_PATH = resource_path('config.json')
 DEFAULT_KEY = 'f24'
 DEFAULT_KEYS = pyautogui.KEY_NAMES
 DEFAULT_INTERVAL = 5
@@ -26,7 +25,7 @@ class StayAwake:
         self.icon = self.build_icon()
     
     def start(self):
-        self.load_config()
+        self.read_config()
         self.press_thread.start()
         self.icon.run()
 
@@ -35,10 +34,10 @@ class StayAwake:
         self.icon.stop()
 
     def build_icon(self):
-        def build_key_setter(key):
+        def key_setter(key):
             return lambda: self.set_key(key)
 
-        def build_interval_setter(interval):
+        def interval_setter(interval):
             return lambda: self.set_interval(interval)
 
         default_item = pystray.MenuItem(
@@ -49,11 +48,11 @@ class StayAwake:
         )
 
         key_menu = pystray.Menu(
-            *[pystray.MenuItem(repr(k), build_key_setter(k), radio=True) for k in DEFAULT_KEYS]
+            *[pystray.MenuItem(repr(k), key_setter(k), radio=True) for k in DEFAULT_KEYS]
         )
 
         interval_menu = pystray.Menu(
-            *[pystray.MenuItem(f'{i} secs', build_interval_setter(i), radio=True) for i in DEFAULT_INTERVALS]
+            *[pystray.MenuItem(f'{i} secs', interval_setter(i), radio=True) for i in DEFAULT_INTERVALS]
         )
 
         config_item = pystray.MenuItem(
@@ -77,18 +76,20 @@ class StayAwake:
     
     def set_key(self, key):
         self.key = key
+        self.write_config()
 
     def set_interval(self, interval):
         self.interval = interval
+        self.write_config()
 
-    def edit_config(self):
-        start_file(CONFIG_PATH)
-        self.load_config()
-    
-    def load_config(self):
-        config = read_toml(CONFIG_PATH)
+    def read_config(self):
+        config = read_json(CONFIG_PATH)
         self.key = config.get('key', DEFAULT_KEY)
         self.interval = config.get('interval', DEFAULT_INTERVAL)
+    
+    def write_config(self):
+        config = {'key': self.key, 'interval': self.interval}
+        write_json(CONFIG_PATH, config)
 
     def toggle_enabled(self):
         if self.disabled.is_set():
@@ -102,7 +103,6 @@ class StayAwake:
         while not self.exit.is_set():
             if not self.disabled.is_set():
                 pyautogui.press(self.key)
-                print(f'pressing {self.key}')
 
             self.exit.wait(self.interval)
 

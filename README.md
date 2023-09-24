@@ -1,6 +1,6 @@
 # stayawake ![stayawake](assets/enabled.png)
 
-A simple Python program to keep your system from sleeping by pressing a key every couple of seconds.
+A simple Python program to keep your system from sleeping by pressing a key at a specified interval.
 
 ## Requirements
 ```
@@ -18,8 +18,7 @@ pyinstaller stayawake.spec
 The output is a single executable built for your current platform.
 
 ## Usage
-This program is entirely system tray-based. A single click on the icon toggles between enabled and disabled. To exit, right click and select exit.
+This program is entirely system tray-based. A single left click on the icon toggles between enabled and disabled states. Key and press interval can be configured under the configuration submenu. To exit, right click and select exit.
 
 ## TODO
 - Add type hints
-- Save configured key and interval

@@ -1,12 +1,6 @@
+import json
 import sys
-import tomllib
 from pathlib import Path
-from platform import system
-
-if system() == 'Windows':
-    from os import startfile
-else:
-    from subprocess import call
 
 
 def resource_path(relative_path):
@@ -14,20 +8,16 @@ def resource_path(relative_path):
     return base_path / relative_path
 
 
-def start_file(path):
-    if system() == 'Darwin':    # macOS
-        call(('open', path))
-    elif system() == 'Windows': # Windows
-        startfile(path)
-    else:                       # Linux
-        call(('xdg-open', path))
-
-
-def read_toml(path):
+def read_json(path):
     try:
-        with open(path, 'rb') as f:
-            toml = tomllib.load(f)
-    except (tomllib.TOMLDecodeError, FileNotFoundError):
-        toml = {}
+        with open(path) as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        data = {}
     
-    return toml
+    return data
+
+
+def write_json(path, data):
+    with open(path, 'w') as f:
+        json.dump(data, f)
