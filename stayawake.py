@@ -1,3 +1,4 @@
+from functools import partial
 from threading import Thread, Event
 
 import pyautogui
@@ -39,6 +40,12 @@ class StayAwake:
 
         def interval_setter(interval):
             return lambda: self.set_interval(interval)
+        
+        def key_selected(key, _):
+            return key == self.key
+        
+        def interval_selected(interval, _):
+            return interval == self.interval
 
         default_item = pystray.MenuItem(
             'Enabled',
@@ -47,19 +54,50 @@ class StayAwake:
             default=True,
         )
 
-        key_menu = pystray.Menu(
-            *[pystray.MenuItem(repr(k), key_setter(k), radio=True) for k in DEFAULT_KEYS]
-        )
+        key_items = []
+        for key in DEFAULT_KEYS:
+            if key == DEFAULT_KEY:
+                item = pystray.MenuItem(
+                    repr(key),
+                    key_setter(key),
+                    checked=partial(key_selected, key),
+                    radio=True,
+                )
+            else:
+                item = pystray.MenuItem(
+                    repr(key),
+                    key_setter(key),
+                    radio=True
+                )
+            
+            key_items.append(item)
 
-        interval_menu = pystray.Menu(
-            *[pystray.MenuItem(f'{i} secs', interval_setter(i), radio=True) for i in DEFAULT_INTERVALS]
-        )
+        interval_items = []
+        for interval in DEFAULT_INTERVALS:
+            if interval == DEFAULT_INTERVAL:
+                item = pystray.MenuItem(
+                    f'{interval} seconds',
+                    interval_setter(interval),
+                    checked=partial(interval_selected, interval),
+                    radio=True,
+                )
+            else:
+                item = pystray.MenuItem(
+                    f'{interval} seconds',
+                    interval_setter(interval),
+                    radio=True
+                )
+            
+            interval_items.append(item)
+        
+        key_menu = pystray.Menu(*key_items)
+        interval_menu = pystray.Menu(*interval_items)
 
         config_item = pystray.MenuItem(
             'Configuration',
             pystray.Menu(
-                pystray.MenuItem('Keys', key_menu),
-                pystray.MenuItem('Intervals', interval_menu)
+                pystray.MenuItem('Key', key_menu),
+                pystray.MenuItem('Interval', interval_menu)
             )
         )
 
