@@ -17,4 +17,5 @@ license = {text = "MIT"}
 [tool.pdm.dev-dependencies]
 dev = [
     "pyinstaller>=5.13.2",
+    "flake8>=6.1.0",
 ]

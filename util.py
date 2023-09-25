@@ -14,7 +14,7 @@ def read_json(path):
             data = json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         data = {}
-    
+
     return data
 
 
