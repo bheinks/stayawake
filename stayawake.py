@@ -54,23 +54,23 @@ class StayAwake:
             default=True,
         )
 
-        key_menu = pystray.Menu(
-            *[pystray.MenuItem(
+        key_menu = pystray.Menu(*[
+            pystray.MenuItem(
                 repr(k),
                 key_setter(k),
                 checked=partial(key_selected, k),
-                radio=True) for k in KEYS
-            ]
-        )
+                radio=True
+            ) for k in KEYS
+        ])
 
-        interval_menu = pystray.Menu(
-            *[pystray.MenuItem(
+        interval_menu = pystray.Menu(*[
+            pystray.MenuItem(
                 f'{i} seconds',
                 interval_setter(i),
                 checked=partial(interval_selected, i),
-                radio=True) for i in INTERVALS
-            ]
-        )
+                radio=True
+            ) for i in INTERVALS
+        ])
 
         config_item = pystray.MenuItem(
             'Configuration',
