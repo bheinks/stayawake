@@ -1,6 +1,6 @@
 [project]
 name = "stayawake"
-version = "0.3"
+version = "0.4"
 description = ""
 authors = [
     {name = "Brett Heinkel", email = "brett@heinkel.dev"},
